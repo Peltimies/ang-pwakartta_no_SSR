@@ -1,5 +1,22 @@
 import { Component, AfterViewInit } from '@angular/core';
 import * as L from 'leaflet';
+
+
+      // marker-ikoninen määrittelytiedostot
+      const iconRetinaUrl = 'assets/marker-icon-2x.png';
+      const iconUrl = 'assets/marker-icon.png';
+      const shadowUrl = 'assets/marker-shadow.png';
+      const iconDefault = L.icon({
+        iconRetinaUrl,
+        iconUrl,
+        shadowUrl,
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34],
+        tooltipAnchor: [16, -28],
+        shadowSize: [41, 41],
+      });
+      
 @Component({
   selector: 'app-map',
   standalone: true,
@@ -10,14 +27,18 @@ import * as L from 'leaflet';
 // ! AfterViewInit suoritetaan kun näkymä on valmis.
 export class MapComponent implements AfterViewInit {
   private map: any;
+  constructor() { }
+
   private initMap(): void {
 
 
 
-    // getCurrentPosition näyttää tämän hetkisen sijainnin
-	  navigator.geolocation.getCurrentPosition((location) => {
+    // watchPosition-metodi tarkkailee käyttäjän sijaintia ja päivittää markerin sijaintia kun käyttäjä liikkuu
+	  navigator.geolocation.watchPosition((location) => {
       // latlng otetaan kordinaatit tämän hetkisen sijainnin
       const latlng = new L.LatLng(location.coords.latitude, location.coords.longitude); 
+      const lat = location.coords.latitude;
+
       // luo uuden kartan ja asettaa sijainnin siihen, 13 tarkoittaa zoomia
 
       this.map = L.map('map').setView(latlng, 13);     
@@ -33,11 +54,44 @@ export class MapComponent implements AfterViewInit {
 
       // show a marker on the map
       L.marker(latlng).bindPopup('The center of the world').addTo(this.map); 
+
+      if (lat > 62) {
+        this.notifyMe();
+      }
       
      });
   }
-  constructor() { }
 
+  notifyMe() {
+    if (!('Notification' in window)) {
+      // Check if the browser supports notifications
+      alert('This browser does not support desktop notification');
+    } else if (Notification.permission === 'granted') {
+      // Check whether notification permissions have already been granted;
+      // if so, create a notification
+      const notification = new Notification('Terve!');
+      // …
+    } else if (Notification.permission !== 'denied') {
+      // We need to ask the user for permission
+      Notification.requestPermission().then((permission) => {
+        // If the user accepts, let's create a notification
+        if (permission === 'granted') {
+          const notification = new Notification('Terve!');
+          // …
+        }
+      });
+    }
+
+    // At last, if the user has denied notifications, and you
+    // want to be respectful there is no need to bother them anymore.
+  }
+  
+  showNotification() {
+    const notification = new Notification("Geolocation Alert", {
+      body: "You have entered the area!",
+    });   
+  }
+  
   ngAfterViewInit(): void {
     this.initMap();
     
