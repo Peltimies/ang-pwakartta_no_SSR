@@ -49,7 +49,12 @@
               {
                 "glob": "**/*",
                 "input": "public",
-                "output": "./assets"
+                "output": "./"
+              },
+              {
+                "glob": "**/*",
+                "input": "public",
+                "output": "./"
               }
             ],
             "styles": [

@@ -1,6 +1,22 @@
 import { Component, AfterViewInit } from '@angular/core';
 import * as L from 'leaflet';
 
+// Fix Leaflet's default icon path for Angular build
+const iconRetinaUrl = 'assets/marker-icon-2x.png';
+const iconUrl = 'assets/marker-icon.png';
+const shadowUrl = 'assets/marker-shadow.png';
+const iconDefault = L.icon({
+  iconRetinaUrl,
+  iconUrl,
+  shadowUrl,
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  tooltipAnchor: [16, -28],
+  shadowSize: [41, 41],
+});
+L.Marker.prototype.options.icon = iconDefault;
+
 
 @Component({
   selector: 'app-map',
@@ -10,43 +26,44 @@ import * as L from 'leaflet';
   styleUrl: './map.component.css'
 })
 
-
 // ! AfterViewInit suoritetaan kun näkymä on valmis.
 export class MapComponent implements AfterViewInit {
   private map: any;
   constructor() { }
 
   private initMap(): void {
+    // Try to get geolocation, but always show a map
+    if (navigator.geolocation) {
+      navigator.geolocation.watchPosition(
+        (location) => {
+          const latlng = new L.LatLng(location.coords.latitude, location.coords.longitude);
+          const lat = location.coords.latitude;
+          this.createMap(latlng);
+          if (lat > 62) {
+            this.notifyMe();
+          }
+        },
+        (error) => {
+          // If user denies or geolocation fails, fallback to Helsinki
+          const fallbackLatLng = new L.LatLng(60.1699, 24.9384); // Helsinki
+          this.createMap(fallbackLatLng);
+        }
+      );
+    } else {
+      // Browser doesn't support geolocation
+      const fallbackLatLng = new L.LatLng(60.1699, 24.9384); // Helsinki
+      this.createMap(fallbackLatLng);
+    }
+  }
 
-
-
-    // watchPosition-metodi tarkkailee käyttäjän sijaintia ja päivittää markerin sijaintia kun käyttäjä liikkuu
-	  navigator.geolocation.watchPosition((location) => {
-      // latlng otetaan kordinaatit tämän hetkisen sijainnin
-      const latlng = new L.LatLng(location.coords.latitude, location.coords.longitude); 
-      const lat = location.coords.latitude;
-
-      // luo uuden kartan ja asettaa sijainnin siihen, 13 tarkoittaa zoomia
-
-      this.map = L.map('map').setView(latlng, 13);     
-
-      // add the OpenStreetMap tiles
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap contributors</a>'
-      }).addTo(this.map);
-
-      // show the scale bar on the lower left corner
-      L.control.scale().addTo(this.map);
-
-      // show a marker on the map
-      L.marker(latlng).bindPopup('The center of the world').addTo(this.map); 
-
-      if (lat > 62) {
-        this.notifyMe();
-      }
-      
-     });
+  private createMap(latlng: L.LatLng) {
+    this.map = L.map('map').setView(latlng, 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap contributors</a>'
+    }).addTo(this.map);
+    L.control.scale().addTo(this.map);
+    L.marker(latlng).bindPopup('The center of the world').addTo(this.map);
   }
 
   notifyMe() {
