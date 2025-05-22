@@ -47,12 +47,12 @@
             "tsConfig": "tsconfig.app.json",
             "assets": [
               {
-                "glob": "**/*",
+                "glob": "icons/**/*",
                 "input": "public",
                 "output": "./"
               },
               {
-                "glob": "**/*",
+                "glob": "manifest.webmanifest",
                 "input": "public",
                 "output": "./"
               }

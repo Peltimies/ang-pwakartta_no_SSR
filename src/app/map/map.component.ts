@@ -32,30 +32,41 @@ export class MapComponent implements AfterViewInit {
   constructor() { }
 
   private initMap(): void {
-    // Try to get geolocation, but always show a map
-    if (navigator.geolocation) {
-      navigator.geolocation.watchPosition(
-        (location) => {
-          const latlng = new L.LatLng(location.coords.latitude, location.coords.longitude);
-          const lat = location.coords.latitude;
-          this.createMap(latlng);
-          if (lat > 62) {
-            this.notifyMe();
-          }
-        },
-        (error) => {
-          // If user denies or geolocation fails, fallback to Helsinki
-          const fallbackLatLng = new L.LatLng(60.1699, 24.9384); // Helsinki
-          this.createMap(fallbackLatLng);
-        }
+    // location ottaa tämän hetkisen sijainnin kordinaatteina
+    // watchPosition-metodi tarkkailee käyttäjän sijaintia
+    // ja päivittää markkeria koko ajan kun käyttäjä liikkuu
+    navigator.geolocation.watchPosition((location) => {
+      // ottaa tämän hetkisesestä sijainnista leveydet yms.
+      const latlng = new L.LatLng(
+        location.coords.latitude,
+        location.coords.longitude
       );
-    } else {
-      // Browser doesn't support geolocation
-      const fallbackLatLng = new L.LatLng(60.1699, 24.9384); // Helsinki
-      this.createMap(fallbackLatLng);
-    }
+
+      const lat = location.coords.latitude;
+
+      // 13 on kartan zoomi
+      this.map = L.map('map').setView(latlng, 13);
+
+      // add the OpenStreetMap tiles
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution:
+          '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap contributors</a>',
+      }).addTo(this.map);
+
+      // show the scale bar on the lower left corner
+      L.control.scale().addTo(this.map);
+
+      // show a marker on the map
+      L.marker(latlng).bindPopup('The center of the world').addTo(this.map);
+
+      if (lat > 62) {
+        this.notifyMe();
+      }
+    });
   }
 
+ 
   private createMap(latlng: L.LatLng) {
     this.map = L.map('map').setView(latlng, 13);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
