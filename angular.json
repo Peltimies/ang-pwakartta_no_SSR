@@ -46,6 +46,8 @@
             ],
             "tsConfig": "tsconfig.app.json",
             "assets": [
+              "src/assets",
+              "src/favicon.ico",
               {
                 "glob": "icons/**/*",
                 "input": "public",
@@ -53,6 +55,16 @@
               },
               {
                 "glob": "manifest.webmanifest",
+                "input": "public",
+                "output": "./"
+              },
+              {
+                "glob": "*.png",
+                "input": "public",
+                "output": "assets"
+              },
+              {
+                "glob": "favicon.ico",
                 "input": "public",
                 "output": "./"
               }
